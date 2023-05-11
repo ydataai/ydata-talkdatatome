@@ -1,3 +1,3 @@
-# YData's open-source-template
+# Talk Data To Me
 
-New YData Open Source repositories should use this repository as a template.
+Your data preparation assistant to help you build high-quality training datasets.
