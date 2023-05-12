@@ -1,14 +1,28 @@
 """
 
 """
+import asyncio
+from contextlib import contextmanager
+
+import aiohttp
 import streamlit as st
 from streamlit_pandas_profiling import st_profile_report
 
 from streamlit_chat import message
 
-
 import pandas as pd
 from pandas_profiling import ProfileReport
+
+# Create a context manager to run an event loop
+@contextmanager
+def setup_event_loop():
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        yield loop
+    finally:
+        loop.close()
+        asyncio.set_event_loop(None)
 
 def upload_file():
     """Upload a CSV dataset"""
@@ -18,7 +32,7 @@ def upload_file():
     uploaded_file = st.file_uploader("Choose a file:")
 
     if uploaded_file is not None:
-      df = pd.read_csv(uploaded_file)
+      df = pd.read_csv(uploaded_file, sep=';')
     return df
 
 def generate_profile(df: pd.DataFrame):
@@ -28,6 +42,7 @@ def generate_profile(df: pd.DataFrame):
     return profile.to_json()
 
 def ask_questions(df: pd.DataFrame, text: str):
+    import sketch
     answer = df.sketch.ask(text)
     return answer
 
@@ -47,18 +62,16 @@ def run():
             profile = generate_profile(df)
 
         with tab3:
-            if profile:
-                # container for chat history
-                response_container = st.container()
-                # container for text box
-                container = st.container()
+            # Use the context manager to create an event loop
+            with setup_event_loop() as loop:
+                user_input=None
+                import sketch
 
-                with st.form(key='my_form', clear_on_submit=True):
-                    user_input = st.text_area("You:", key='input', height=100)
-                    submit_button = st.form_submit_button(label='Send')
+                user_input = st.text_input('What is your question?')
 
-                    if user_input:
-                        response = df.sketch.ask(user_input)
+                if user_input:
+                    response = st.text(df.sketch.ask(user_input, call_display=False))
+
 
 if __name__ == '__main__':
     run()
