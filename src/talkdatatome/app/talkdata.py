@@ -29,10 +29,16 @@ def upload_file():
     df = None
 
     st.subheader("1. Select your dataset")
-    uploaded_file = st.file_uploader("Choose a file:")
+
+    col1, col2 = st.columns([3, 1])
+
+    with col1:
+        uploaded_file = st.file_uploader("Choose a file:")
+    with col2:
+        separator = st.selectbox("Select a separator: ", (';',',', ' ', '|'))
 
     if uploaded_file is not None:
-      df = pd.read_csv(uploaded_file, sep=';')
+      df = pd.read_csv(uploaded_file, sep=separator)
     return df
 
 def generate_profile(df: pd.DataFrame):
